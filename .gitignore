@@ -1,0 +1,17 @@
+# Local test/install artifacts
+*.bak
+*.bak-*
+*.swp
+*.swo
+.DS_Store
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node
+node_modules/
+*.log

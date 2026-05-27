@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# write-cognee-env.sh
+# Phase 2 of the harness installer.
+# Writes ~/.cognee/.env with provider/endpoint config. Idempotent:
+# leaves an existing file alone so user customisations survive re-runs.
+
+set -eu
+
+log() { printf '\n[write-cognee-env] %s\n' "$*"; }
+
+COGNEE_DIR="${HOME}/.cognee"
+COGNEE_ENV="${COGNEE_DIR}/.env"
+
+mkdir -p "${COGNEE_DIR}/data_storage" "${COGNEE_DIR}/system" "${COGNEE_DIR}/cache" "${COGNEE_DIR}/logs"
+
+if [ -f "${COGNEE_ENV}" ]; then
+  log "${COGNEE_ENV} already exists — leaving as-is."
+  log "delete it manually if you want defaults regenerated."
+  exit 0
+fi
+
+log "writing ${COGNEE_ENV}"
+cat > "${COGNEE_ENV}" <<EOF
+# Cognee config — LLM via Anthropic + local Ollama embeddings.
+# LLM_API_KEY is NOT set here; cognee-shim.sh injects it from \$ANTHROPIC_API_KEY at runtime.
+
+# ---- LLM (graph extraction + GRAPH_COMPLETION queries) ----
+LLM_PROVIDER=anthropic
+LLM_MODEL=claude-haiku-4-5-20251001
+
+# ---- Embeddings (local Ollama; uses GPU if available) ----
+EMBEDDING_PROVIDER=ollama
+EMBEDDING_MODEL=nomic-embed-text
+EMBEDDING_DIMENSIONS=768
+EMBEDDING_ENDPOINT=http://localhost:11434/api/embed
+EMBEDDING_API_KEY=ollama
+HUGGINGFACE_TOKENIZER=nomic-ai/nomic-embed-text-v1.5
+
+# ---- Shared storage so cognee-cli and cognee-mcp see the same data ----
+DATA_ROOT_DIRECTORY=${COGNEE_DIR}/data_storage
+SYSTEM_ROOT_DIRECTORY=${COGNEE_DIR}/system
+CACHE_ROOT_DIRECTORY=${COGNEE_DIR}/cache
+
+# ---- Behaviour ----
+ENABLE_BACKEND_ACCESS_CONTROL=false
+CACHING=false
+EOF
+
+log "wrote ${COGNEE_ENV}"
+log "next phase: scripts/graft-files.sh"
