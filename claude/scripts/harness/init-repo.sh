@@ -67,10 +67,17 @@ fi
 # 5. Spec Kit init (optional — skip silently if not installed).
 if command -v specify >/dev/null 2>&1; then
   if [ ! -d .specify ]; then
-    specify init . --integration claude --here >/dev/null 2>&1 || \
-      specify init . --integration claude >/dev/null 2>&1 || \
-      echo "[harness-init] specify init failed (continuing)"
-    echo "[harness-init] .specify/       ok"
+    # --force is REQUIRED for non-empty existing repos (retrofit): without it,
+    # specify aborts at the "directory not empty" confirmation in non-interactive
+    # runs, so .specify/ is never created. --force only appends a marker-delimited
+    # block to an existing CLAUDE.md (it never overwrites it). Gate the success
+    # message on the real exit code so a failure is reported, not masked.
+    if specify init . --integration claude --here --force >/dev/null 2>&1; then
+      echo "[harness-init] .specify/       ok"
+    else
+      echo "[harness-init] specify init FAILED — run manually:"
+      echo "              specify init . --integration claude --here --force"
+    fi
   else
     echo "[harness-init] .specify/       present"
   fi
