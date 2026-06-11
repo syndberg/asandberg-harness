@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Choice of Cognee embeddings backend at install:** OpenAI API (`text-embedding-3-small`, default) or local Ollama (`nomic-embed-text`). The installer prompts interactively (default OpenAI) or honours a preset `HARNESS_EMBEDDINGS=openai|ollama` for non-interactive runs. `cognee-shim.sh` injects `EMBEDDING_API_KEY` from `$OPENAI_API_KEY` for the OpenAI path (key never written to `~/.cognee/.env`); the Ollama model pull and `:11434` prereq check are skipped when OpenAI is chosen.
 - Initial public release: extracted from a private monorepo as a standalone graft-installable harness.
 - Agent-executable install runbook in `AGENTS.md`.
 - Idempotent phased installer (`install.sh` + `scripts/*`).

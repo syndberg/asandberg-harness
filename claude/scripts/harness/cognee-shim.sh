@@ -33,6 +33,16 @@ if [ -f "${COGNEE_ENV_FILE}" ]; then
   export LLM_API_KEY="${LLM_API_KEY:-${ANTHROPIC_API_KEY:-}}"
 fi
 
+# When embeddings use OpenAI, Cognee reads EMBEDDING_API_KEY. Inject it from
+# $OPENAI_API_KEY (the key is intentionally NOT written into ~/.cognee/.env).
+# The Ollama backend sets EMBEDDING_API_KEY=ollama in the .env, so this no-ops there.
+if [ "${EMBEDDING_PROVIDER:-}" = "openai" ] && [ "${EMBEDDING_API_KEY:-}" = "" ]; then
+  if [ "${OPENAI_API_KEY:-}" = "" ]; then
+    echo "[cognee-shim] EMBEDDING_PROVIDER=openai but OPENAI_API_KEY is not set — embeddings will fail." >&2
+  fi
+  export EMBEDDING_API_KEY="${OPENAI_API_KEY:-}"
+fi
+
 # First positional is the cognee binary name; rest are passed through.
 if [ "$#" -lt 1 ]; then
   echo "[cognee-shim] usage: cognee-shim.sh <cognee-binary> [args...]" >&2

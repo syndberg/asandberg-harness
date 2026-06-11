@@ -3,7 +3,7 @@
 # Runs each install phase in order, halting on first failure with a clear pointer.
 #
 # Phases:
-#   1. install-toolchain.sh    External tools (uv, python 3.12, cognee, ollama model)
+#   1. install-toolchain.sh    External tools (uv, python 3.12, cognee; ollama model only if chosen)
 #   2. write-cognee-env.sh     ~/.cognee/.env config file
 #   3. graft-files.sh          Copy harness files into ~/.claude/ (never overwrites)
 #   4. merge-settings.py       Additive hook entries in ~/.claude/settings.json
@@ -41,11 +41,44 @@ if [ "${ANTHROPIC_API_KEY:-}" = "" ]; then
   exit 1
 fi
 
-if ! curl -sf http://localhost:11434/api/version >/dev/null 2>&1; then
-  printf '\n\e[33m[install] WARN: ollama not responding on :11434.\e[0m\n' >&2
-  printf 'Install:  curl -fsSL https://ollama.com/install.sh | sh\n' >&2
-  printf 'Start it (Linux): systemctl --user enable --now ollama\n' >&2
-  printf 'Continuing — the toolchain phase will still try to pull the model later.\n\n' >&2
+# --- Embeddings backend choice (default: OpenAI API) ---
+# Cognee needs an embeddings backend. Two supported paths:
+#   openai  — OpenAI text-embedding-3-small (1536d); needs OPENAI_API_KEY; small ongoing cost.
+#   ollama  — local nomic-embed-text (768d); no API cost; needs Ollama serving on :11434.
+# Preset HARNESS_EMBEDDINGS=openai|ollama for non-interactive installs (defaults to openai).
+EMBEDDINGS="${HARNESS_EMBEDDINGS:-}"
+if [ -z "${EMBEDDINGS}" ]; then
+  if [ -t 0 ]; then
+    printf '\n\e[1mCognee embeddings backend:\e[0m\n'
+    printf '  1) OpenAI API   — text-embedding-3-small (1536d); needs OPENAI_API_KEY; small ongoing cost  [default]\n'
+    printf '  2) Local Ollama — nomic-embed-text (768d); no API cost; needs Ollama serving on :11434\n'
+    printf 'Choose [1/2] (default 1): '
+    read -r _emb_choice
+    case "${_emb_choice}" in 2|ollama|o|O) EMBEDDINGS=ollama ;; *) EMBEDDINGS=openai ;; esac
+  else
+    EMBEDDINGS=openai
+  fi
+fi
+export HARNESS_EMBEDDINGS="${EMBEDDINGS}"
+printf '[install] embeddings backend: \e[1m%s\e[0m\n' "${HARNESS_EMBEDDINGS}"
+
+if [ "${HARNESS_EMBEDDINGS}" = "openai" ]; then
+  if [ "${OPENAI_API_KEY:-}" = "" ]; then
+    printf '\n\e[31m[install] OPENAI_API_KEY is not set — required for the OpenAI embeddings backend.\e[0m\n'
+    printf 'Export it and re-run:\n    export OPENAI_API_KEY="sk-…"\n'
+    printf 'Or use local embeddings instead:\n    HARNESS_EMBEDDINGS=ollama bash install.sh\n' >&2
+    exit 1
+  fi
+elif [ "${HARNESS_EMBEDDINGS}" = "ollama" ]; then
+  if ! curl -sf http://localhost:11434/api/version >/dev/null 2>&1; then
+    printf '\n\e[33m[install] WARN: ollama not responding on :11434.\e[0m\n' >&2
+    printf 'Install:  curl -fsSL https://ollama.com/install.sh | sh\n' >&2
+    printf 'Start it (Linux): systemctl --user enable --now ollama\n' >&2
+    printf 'Continuing — the toolchain phase will still try to pull the model later.\n\n' >&2
+  fi
+else
+  printf '\n\e[31m[install] invalid HARNESS_EMBEDDINGS=%s (expected openai or ollama).\e[0m\n' "${HARNESS_EMBEDDINGS}" >&2
+  exit 1
 fi
 
 # --- Phases ---

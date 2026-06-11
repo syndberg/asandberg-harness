@@ -47,8 +47,12 @@ uv tool install cognee --with anthropic --with transformers --python 3.12 --forc
 log "cognee-mcp: installing/refreshing via uv tool..."
 uv tool install cognee-mcp --with anthropic --with transformers --python 3.12 --force >/dev/null
 
-# 6. Ollama embedding model
-if command -v ollama >/dev/null 2>&1; then
+# 6. Ollama embedding model — only for the local-embeddings backend.
+# When HARNESS_EMBEDDINGS=openai (the default; set by install.sh), skip this entirely:
+# the OpenAI backend needs no local model or Ollama daemon.
+if [ "${HARNESS_EMBEDDINGS:-ollama}" = "openai" ]; then
+  log "embeddings=openai — skipping Ollama model (not needed)"
+elif command -v ollama >/dev/null 2>&1; then
   if ollama list 2>/dev/null | awk '{print $1}' | grep -qx "nomic-embed-text:latest"; then
     log "ollama nomic-embed-text: present"
   else
@@ -56,7 +60,7 @@ if command -v ollama >/dev/null 2>&1; then
     ollama pull nomic-embed-text || warn "ollama pull failed — pull manually before using Cognee"
   fi
 else
-  warn "ollama missing; embeddings will fail until ollama is installed and serving on :11434"
+  warn "ollama missing; local embeddings will fail until ollama is installed and serving on :11434"
   warn "install: curl -fsSL https://ollama.com/install.sh | sh"
 fi
 

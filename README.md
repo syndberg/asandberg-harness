@@ -21,7 +21,16 @@ cd asandberg-harness
 bash install.sh
 ```
 
-Prereqs: Linux or macOS, `git`, `curl`, `python3 ≥ 3.9`, Node.js ≥ 22, Claude Code installed, `ANTHROPIC_API_KEY` exported, and Ollama running on `:11434`. The installer fails fast with actionable errors if any are missing.
+Prereqs: Linux or macOS, `git`, `curl`, `python3 ≥ 3.9`, Node.js ≥ 22, Claude Code installed, and `ANTHROPIC_API_KEY` exported. The installer fails fast with actionable errors if any are missing.
+
+**Embeddings backend** (the installer asks; default in **bold**):
+
+| Choice | Model | Needs | Cost |
+|---|---|---|---|
+| **OpenAI API** (default) | `text-embedding-3-small` (1536d) | `OPENAI_API_KEY` exported | small ongoing API cost |
+| Local Ollama | `nomic-embed-text` (768d) | Ollama running on `:11434` | none (local GPU) |
+
+Non-interactive / scripted installs: preset the choice with `HARNESS_EMBEDDINGS=openai` or `HARNESS_EMBEDDINGS=ollama` (e.g. `HARNESS_EMBEDDINGS=ollama bash install.sh`). The LLM is always Anthropic (`claude-haiku-4-5`). For OpenAI embeddings the key is never written to `~/.cognee/.env` — `cognee-shim.sh` injects it from `$OPENAI_API_KEY` at runtime.
 
 After install completes:
 
