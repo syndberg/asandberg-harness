@@ -31,15 +31,16 @@ Print exactly this block to the user, then stop. Do not run any tools.
 ==========================================
 
 The full flow:
-  1. /harness.init                  (once per repo)
-  2. /feature start <name>          Bootstrap spec + eval scaffold
-  3. Edit specs/<name>/spec.md      Acceptance criteria
-  4. Edit specs/<name>/plan.md      Implementation approach
-  5. Edit specs/<name>/tasks.md     TDD task breakdown
-  6. /spec.implement <name>         TDD loop + conformance check
-  7. /eval check <name>             Eval suite must pass
-  8. /spec.reconcile <name>         Spec catches up to reality
-  9. Open PR
+  1.  /harness.init                  (once per repo)
+  2.  /feature start <name>          Bootstrap spec + eval scaffold
+  3.  /spec.draft <name> "<intent>"  Draft spec + plan from intent (add --compare for A/B)
+  4.  Edit specs/<name>/spec.md      Refine acceptance criteria
+  5.  Edit specs/<name>/plan.md      Refine implementation approach
+  6.  Edit specs/<name>/tasks.md     TDD task breakdown
+  7.  /spec.implement <name>         TDD loop + conformance check
+  8.  /eval check <name>             Eval suite must pass
+  9.  /spec.reconcile <name>         Spec catches up to reality
+  10. Open PR
 
 Retrofitting an existing repo with history:
   /harness.init then /harness.catalogue
@@ -50,6 +51,7 @@ Quick commands:
   /feature                          This cheat sheet
   /feature start <name>             Bootstrap new feature
   /feature status                   List features and their state
+  /spec.draft <name> "<intent>"     Draft spec+plan from intent (--compare for A/B)
 
 Files created by /feature start:
   specs/<name>/spec.md              Requirements + acceptance criteria
@@ -105,8 +107,9 @@ auto-sync on edits.
    ✓ Feature scaffold created: <name>
 
    Next steps:
-     1. Fill in specs/<name>/spec.md (acceptance criteria are the most important part)
-     2. Fill in specs/<name>/plan.md (approach + file list)
+     1. /spec.draft <name> "<one-line intent>"  (drafts spec.md + plan.md from intent;
+        add --compare to test Fable vs Opus) — or fill specs/<name>/spec.md by hand
+     2. Refine acceptance criteria in specs/<name>/spec.md (the most important part)
      3. Fill in specs/<name>/tasks.md (TDD task breakdown)
      4. Mirror acceptance criteria into .claude/evals/<name>.md capability section
      5. /spec.implement <name>

@@ -7,9 +7,11 @@ The harness is three layers of code wired together by Claude Code's hook + MCP s
 │  Orchestrator (Claude Code session, your active model)       │
 │                                                              │
 │   reads:  recall-context skill → mcp__cognee__search         │
-│   writes: /spec.implement loop, /spec.reconcile, /feature    │
+│   writes: /spec.draft, /spec.implement, /spec.reconcile      │
 │                                                              │
 │   dispatches (depth = 1):                                    │
+│     ├─ spec-drafter        (fable, drafts spec+plan)         │
+│     ├─ spec-draft-judge    (opus, blind A/B compare)         │
 │     ├─ spec-implementer    (sonnet, writes one task TDD)     │
 │     ├─ test-runner         (external; standard CC harness)   │
 │     └─ spec-conformance-evaluator (opus, grades PASS/FAIL)   │
@@ -111,6 +113,7 @@ The check is a warning, not a gate. Cross-feature edits are sometimes intentiona
 | `~/.claude.json`                        | MCP server registration (`cognee`)                   |
 | `~/.claude/settings.json`               | Hook entries (additive to your existing config)      |
 | `<repo>/.harness/marker`                | Opt-in flag for hooks to engage                      |
+| `<repo>/.harness/drafts/<feature>/`     | `/spec.draft --compare` A/B candidates (NOT ingested)|
 | `<repo>/docs/memory/decisions/`         | Decision records (one per file, frontmatter + body)  |
 | `<repo>/docs/memory/runbooks/`          | Operational recipes                                  |
 | `<repo>/docs/memory/glossary.md`        | Domain terms                                         |
@@ -124,3 +127,4 @@ The check is a warning, not a gate. Cross-feature edits are sometimes intentiona
 - **Depth = 1.** Specialists never spawn subagents. Keeps cost/latency predictable and makes failure modes traceable.
 - **The hook only queues; the MCP only ingests.** This separation exists because Ladybug is single-writer; trying to write from both `cognee-cli` (in the hook) and `cognee-mcp` (in the server) races the lock.
 - **No spec rewriting during impl.** Only `/spec.reconcile` (the last step) edits `spec.md`, and only by appending an `## Implementation Notes` section. The spec stays a contract, not a moving target.
+- **Drafting is a swappable model tier.** `/spec.draft` dispatches `spec-drafter` (default `claude-fable-5`) to author `spec.md`/`plan.md` from a one-line intent; you then drop to your Opus session to orchestrate `/spec.implement`. `--compare` runs the same intent under two models and has a blind opus `spec-draft-judge` score both — candidates live in `.harness/drafts/` (outside the ingest set), so only the chosen spec reaches Cognee. The drafter's `model:` line is the single knob for retuning the experiment.
