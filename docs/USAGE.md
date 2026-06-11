@@ -30,9 +30,25 @@ Scaffolds:
 - `.claude/evals/<name>.md` — eval suite mirroring the spec
 - `FEATURES.md` — top-level index row
 
-Fill in the `spec.md` first — that's the contract `/spec.implement` will grade against.
+### Drafting the spec from intent
 
-Then drive the feature through:
+You can fill `spec.md`/`plan.md` by hand, or have a model draft them from a one-line intent:
+
+```text
+/spec.draft <name> "a CLI that lints commit messages against Conventional Commits"
+```
+
+This dispatches the `spec-drafter` agent (default model **Fable**) to expand the intent into `specs/<name>/spec.md` + `plan.md`, following the templates. You stay in control: the orchestrator writes the files and shows you the drafter's assumptions and open questions to resolve.
+
+To test which model writes the better spec, add `--compare`:
+
+```text
+/spec.draft <name> "<intent>" --compare
+```
+
+It drafts the same intent under Fable **and** Opus, writes both to `.harness/drafts/<name>/{A,B}/` (outside the Cognee ingest set, so rejected drafts don't pollute the graph), and a blind `spec-draft-judge` (opus) scores both against a spec-quality rubric. The judge is advisory — you pick the winner, which gets promoted into `specs/<name>/`.
+
+Either way, **review the criteria before implementing** — `spec.md` is the contract `/spec.implement` will grade against. Then drive the feature through:
 
 ```text
 /spec.implement <name>
@@ -69,7 +85,8 @@ mcp__cognee__search {
 
 | Situation | What to do |
 |---|---|
-| New repo, fresh idea | `git init` → `/harness.init` → `/feature start <name>` → fill spec → `/spec.implement <name>` |
+| New repo, fresh idea | `git init` → `/harness.init` → `/feature start <name>` → `/spec.draft <name> "<intent>"` → refine spec → `/spec.implement <name>` |
+| Want to test which model writes better specs | `/spec.draft <name> "<intent>" --compare` → blind judge scores Fable vs Opus → you pick |
 | Existing repo, never used the harness | `/harness.init` → `/harness.catalogue` → first real feature via `/feature start` |
 | Tiny fix or one-off script | Skip the harness. Don't `/harness.init`. Hooks stay dormant. |
 | Multi-feature collision worry | Mark `_Boundary:_` lines in `tasks.md`; the boundary-check hook warns when another feature's impl touches them. |
