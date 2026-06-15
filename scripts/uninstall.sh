@@ -23,6 +23,7 @@ HARNESS_FILES=(
   "${HOME}/.claude/agents/spec-conformance-evaluator.md"
   "${HOME}/.claude/agents/spec-drafter.md"
   "${HOME}/.claude/agents/spec-draft-judge.md"
+  "${HOME}/.claude/agents/test-runner.md"
   "${HOME}/.claude/agents/code-reviewer.md"
   "${HOME}/.claude/agents/security-reviewer.md"
   "${HOME}/.claude/commands/harness-init.md"

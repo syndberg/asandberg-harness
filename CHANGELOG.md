@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Fixed
+- **`/spec.implement` dispatched a `test-runner` agent that was never shipped.** The orchestration loop (and `spec-conformance-evaluator`'s contract) referenced a `test-runner` subagent, but no such agent existed in `claude/agents/`, so every run failed with "Agent type 'test-runner' not found" at the test phase. Added the missing `test-runner` agent (model `haiku`): runs the full suite for each touched package and returns a distilled PASS/FAIL + failing tests, keeping verbose runner output out of the orchestrator's context. Registered in `verify.sh`/`uninstall.sh`.
 - **`/spec.implement`'s review step dispatched `code-reviewer` and `security-reviewer` agents that the harness never shipped.** The final gate (after all tasks land) dispatches both bare-named reviewers, but `claude/agents/` provided neither, so the review step failed with "Agent type not found" in any environment lacking same-named agents. Added both as self-contained harness agents — `code-reviewer` (sonnet; quality/correctness/maintainability) and `security-reviewer` (opus; vulnerabilities the diff introduces) — each review-only (no write tools) and returning a parseable `VERDICT: PASS|FAIL` the loop reads. `graft-files.sh` uses `cp -n`, so a user's own same-named agents are never overwritten. Registered in `verify.sh`/`uninstall.sh`.
 
 ### Added
