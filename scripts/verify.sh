@@ -31,6 +31,7 @@ test -f "${HOME}/.claude/agents/spec-implementer.md"             && ok "agent: s
 test -f "${HOME}/.claude/agents/spec-conformance-evaluator.md"   && ok "agent: spec-conformance-evaluator"  || fail "agent missing: spec-conformance-evaluator.md"
 test -f "${HOME}/.claude/agents/spec-drafter.md"                 && ok "agent: spec-drafter"                || fail "agent missing: spec-drafter.md"
 test -f "${HOME}/.claude/agents/spec-draft-judge.md"             && ok "agent: spec-draft-judge"            || fail "agent missing: spec-draft-judge.md"
+test -f "${HOME}/.claude/agents/test-runner.md"                  && ok "agent: test-runner"                 || fail "agent missing: test-runner.md"
 test -f "${HOME}/.claude/commands/harness-init.md"               && ok "command: /harness.init"             || fail "command missing: harness-init.md"
 test -f "${HOME}/.claude/commands/harness-catalogue.md"          && ok "command: /harness.catalogue"        || fail "command missing: harness-catalogue.md"
 test -f "${HOME}/.claude/commands/spec-implement.md"             && ok "command: /spec.implement"           || fail "command missing: spec-implement.md"
